@@ -1,0 +1,25 @@
+{
+  "name": "@gad/core",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+
+  "scripts": {
+  "build": "tsc -p tsconfig.json"
+}
+,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./presets/wb": {
+      "types": "./dist/presets/wb.d.ts",
+      "default": "./dist/presets/wb.js"
+    },
+    "./presets/ozon": {
+      "types": "./dist/presets/ozon.d.ts",
+      "default": "./dist/presets/ozon.js"
+    }
+  }
+}

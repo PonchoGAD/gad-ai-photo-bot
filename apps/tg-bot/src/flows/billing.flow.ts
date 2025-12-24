@@ -1,0 +1,63 @@
+// apps/tg-bot/src/flows/billing.flow.ts
+import type { Context } from "telegraf";
+import { PrismaClient } from "@prisma/client";
+import { billingKb, plansKb, topupKb } from "../ui/keyboards.js";
+
+const prisma = new PrismaClient();
+
+/**
+ * Главный экран billing
+ */
+export async function billingHomeFlow(ctx: Context) {
+  const tgId = String(ctx.from!.id);
+
+  const user = await prisma.user.findUnique({
+    where: { telegramId: tgId }
+  });
+
+  if (!user) {
+    await ctx.reply("Пользователь не найден.");
+    return;
+  }
+
+  await ctx.reply(
+    `💳 *Ваш баланс*\n\n` +
+      `Тариф: *${user.plan}*\n` +
+      `Credits: *${user.credits}*\n`,
+    {
+      parse_mode: "Markdown",
+      reply_markup: billingKb()
+    }
+  );
+}
+
+/**
+ * Экран тарифов
+ */
+export async function billingPlansFlow(ctx: Context) {
+  await ctx.reply(
+    "⬆️ *Выберите тариф*\n\n" +
+      "FREE — базовые функции\n" +
+      "STARTER — batch, больше лимитов\n" +
+      "PRO — Gemini PRO, без watermark\n" +
+      "STUDIO — приоритет, большие объёмы\n",
+    {
+      parse_mode: "Markdown",
+      reply_markup: plansKb()
+    }
+  );
+}
+
+/**
+ * Экран пополнения
+ */
+export async function billingTopupFlow(ctx: Context) {
+  await ctx.reply(
+    "➕ *Пополнение баланса*\n\n" +
+      "Выберите способ оплаты:",
+    {
+      parse_mode: "Markdown",
+      reply_markup: topupKb()
+    }
+  );
+}

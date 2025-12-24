@@ -1,0 +1,47 @@
+{
+  "name": "@gad/billing",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./ledger": {
+      "types": "./dist/ledger.d.ts",
+      "default": "./dist/ledger.js"
+    },
+    "./enforce": {
+      "types": "./dist/enforce.d.ts",
+      "default": "./dist/enforce.js"
+    },
+    "./plans": {
+      "types": "./dist/plans.d.ts",
+      "default": "./dist/plans.js"
+    },
+    "./refundPolicy": {
+      "types": "./dist/refundPolicy.d.ts",
+      "default": "./dist/refundPolicy.js"
+    }
+  },
+
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "express": "^5.2.1",
+    "stripe": "^20.1.0",
+    "@gad/queue-names": "workspace:*"
+  },
+
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.2"
+  }
+}

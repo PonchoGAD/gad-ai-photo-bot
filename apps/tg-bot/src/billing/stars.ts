@@ -1,0 +1,42 @@
+// apps/tg-bot/src/billing/stars.ts
+import type { Context } from "telegraf";
+import { PrismaClient } from "@prisma/client";
+import { credit } from "@gad/billing/ledger";
+
+const prisma = new PrismaClient();
+
+/**
+ * Обработка оплаты Stars
+ * 1 Star = 1 credit (пока)
+ */
+export async function handleStarsPayment(ctx: Context) {
+  const payment = (ctx.message as any)?.successful_payment;
+  if (!payment) return;
+
+  const tgId = String(ctx.from!.id);
+  const stars = payment.total_amount; // в минимальных единицах
+
+  const user = await prisma.user.findUnique({
+    where: { telegramId: tgId }
+  });
+
+  if (!user) {
+    await ctx.reply("Ошибка: пользователь не найден.");
+    return;
+  }
+
+  await credit({
+    userId: user.id,
+    amount: stars,
+    reason: "STARS_TOPUP",
+    meta: {
+      telegramPaymentChargeId: payment.telegram_payment_charge_id
+    }
+  });
+
+  await ctx.reply(
+    `✅ Баланс пополнен!\n\n` +
+      `⭐ Получено credits: ${stars}\n` +
+      `Текущий баланс: ${user.credits + stars}`
+  );
+}

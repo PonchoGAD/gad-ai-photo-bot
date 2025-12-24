@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  telegramId   String   @unique
+  username     String?
+  createdAt    DateTime @default(now())
+
+  plan         Plan     @default(FREE)
+  credits      Int      @default(0)
+  isBanned     Boolean  @default(false)
+
+  tenantId     String?
+  tenant       Tenant? @relation(fields: [tenantId], references: [id])
+
+  jobs         Job[]
+  ledger       LedgerEntry[]
+}
+
+model Job {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+
+  type         JobType
+  status       JobStatus @default(QUEUED)
+
+  inputJson    Json
+  outputJson   Json?
+  error        String?
+
+  // ✅ TG delivery fields (NEW)
+  tgMessageId       Int?
+  tgDeliveredAt     DateTime?
+  tgDeliveryStatus  String?   // PENDING | SENT | FAILED | SKIPPED
+  tgDeliveryError   String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tgDeliveredAt])
+}
+
+model Tenant {
+  id           String   @id @default(cuid())
+  name         String
+  domain       String?
+  logoUrl      String?
+  primaryColor String?
+  createdAt    DateTime @default(now())
+
+  users        User[]
+}
+
+enum Plan {
+  FREE
+  STARTER
+  PRO
+  STUDIO
+}
+
+enum JobType {
+  CREATE_CARDS
+  ENHANCE
+  BACKGROUND
+  BATCH
+  VIDEO
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  DONE
+  FAILED
+}
+
+// Append-only billing ledger
+model LedgerEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  delta     Int
+  type      String   // CREDIT | DEBIT | REFUND
+  reason    String
+  meta      Json
+  jobId     String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([jobId])
+}
+
+model JobMetric {
+  id          String   @id @default(cuid())
+  jobId       String
+  jobName     String
+  success     Boolean
+  durationMs  Int?
+  cost        Int      @default(0)
+
+  createdAt   DateTime @default(now())
+
+  @@index([jobName])
+  @@index([createdAt])
+}
+
