@@ -2,10 +2,13 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as os from "node:os";
-import { PrismaClient } from "@prisma/client";
+
 import { putFile } from "@gad/storage";
+import pkg from "@prisma/client";
+const { PrismaClient } = pkg;
 
 const prisma = new PrismaClient();
+
 
 export type PreprocessJobPayload = {
   inputPath: string; // локальный путь (пока так)

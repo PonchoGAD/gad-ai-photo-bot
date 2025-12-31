@@ -1,9 +1,12 @@
 // apps/tg-bot/src/billing/stars.ts
 import type { Context } from "telegraf";
-import { PrismaClient } from "@prisma/client";
+
 import { credit } from "@gad/billing/ledger";
+import pkg from "@prisma/client";
+const { PrismaClient } = pkg;
 
 const prisma = new PrismaClient();
+
 
 /**
  * Обработка оплаты Stars

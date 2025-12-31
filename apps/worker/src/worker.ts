@@ -1,7 +1,7 @@
 // apps/worker/src/worker.ts
 import "dotenv/config";
 import { Worker, Queue } from "bullmq";
-import { PrismaClient } from "@prisma/client";
+
 
 import { redisConnection } from "./queue/redis.js";
 import { JOBS, QUEUES } from "@gad/queue-names";
@@ -22,8 +22,11 @@ import { preprocessJob } from "./jobs/preprocess.job.js";
 import { backgroundJob } from "./jobs/background.job.js";
 import { geminiCardJob } from "./jobs/geminiCard.job.js";
 import { videoJob } from "./jobs/video.job.js";
+import pkg from "@prisma/client";
+const { PrismaClient } = pkg;
 
 const prisma = new PrismaClient();
+
 
 const queue = new Queue(QUEUES.MAIN, {
   connection: redisConnection()

@@ -1,5 +1,6 @@
-// apps/worker/src/lib/metrics.ts
-import { PrismaClient, Prisma } from "@prisma/client";
+import pkg from "@prisma/client";
+
+const { PrismaClient, Prisma } = pkg;
 
 const prisma = new PrismaClient();
 
@@ -17,6 +18,14 @@ type JobEndParams = {
 type RangeParams = {
   from: Date;
   to: Date;
+};
+
+export type TopJobRow = {
+  jobId: string;
+  userId: string;
+  cost: number;
+  durationMs: number | null;
+  createdAt: Date;
 };
 
 /* ===============================
@@ -59,7 +68,7 @@ export async function markJobEnd(params: JobEndParams) {
     where: { id: jobId },
     data: {
       outputJson: {
-        ...(job.outputJson as any),
+        ...(job.outputJson as Record<string, unknown>),
         jobName,
         metrics: {
           finishedAt: finishedAt.toISOString(),
@@ -98,7 +107,7 @@ export async function getMetricsByRange({ from, to }: RangeParams) {
   let successJobs = 0;
   let failedJobs = 0;
   let totalDuration = 0;
-  let durations: number[] = [];
+  const durations: number[] = [];
   let totalCost = 0;
 
   for (const job of jobs) {
@@ -144,7 +153,15 @@ export async function getMetricsByRange({ from, to }: RangeParams) {
  * Метрики по дням (N последних дней)
  */
 export async function getDailyMetrics(days: number) {
-  const rows: any[] = [];
+  const rows: {
+    date: string;
+    totalJobs: number;
+    successJobs: number;
+    failedJobs: number;
+    successRate: number;
+    avgDurationMs: number;
+    totalCost: number;
+  }[] = [];
 
   for (let i = days - 1; i >= 0; i--) {
     const from = new Date();
@@ -173,14 +190,15 @@ export async function getDailyMetrics(days: number) {
 /**
  * Топ самых дорогих job
  */
-export async function getTopExpensiveJobs(limit = 10) {
-  const jobs = await prisma.job.findMany({
-    where: {
-      outputJson: {
-        // ✅ fixed: Prisma.JsonNull 
-        not: Prisma.JsonNull
-      }
-    },
+export async function getTopExpensiveJobs(
+  limit = 10
+): Promise<TopJobRow[]> {
+  const jobs: {
+    id: string;
+    userId: string;
+    outputJson: unknown;
+    createdAt: Date;
+  }[] = await prisma.job.findMany({
     select: {
       id: true,
       userId: true,
@@ -189,22 +207,29 @@ export async function getTopExpensiveJobs(limit = 10) {
     }
   });
 
-  const rows = jobs
+  const rows: TopJobRow[] = jobs
     .map((j) => {
       const metrics = (j.outputJson as any)?.metrics;
-      if (!metrics || typeof metrics.cost !== "number") return null;
+
+      if (!metrics || typeof metrics.cost !== "number") {
+        return null;
+      }
 
       return {
         jobId: j.id,
         userId: j.userId,
         cost: metrics.cost,
-        durationMs: metrics.durationMs,
+        durationMs:
+          typeof metrics.durationMs === "number"
+            ? metrics.durationMs
+            : null,
         createdAt: j.createdAt
       };
     })
-    .filter(Boolean)
-    .sort((a: any, b: any) => b.cost - a.cost)
-    .slice(0, limit);
+    .filter((j): j is TopJobRow => j !== null);
 
-  return rows;
+  rows.sort((a, b) => b.cost - a.cost);
+
+  return rows.slice(0, limit);
 }
+

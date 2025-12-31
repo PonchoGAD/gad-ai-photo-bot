@@ -4,7 +4,7 @@ import * as fs from "node:fs";
 import * as fsp from "node:fs/promises";
 import * as path from "node:path";
 import * as os from "node:os";
-import { PrismaClient } from "@prisma/client";
+
 import { Redis } from "ioredis";
 import { Queue } from "bullmq";
 
@@ -12,9 +12,25 @@ import { getFileStream, putFile, presign } from "@gad/storage";
 import { waitUntilObjectsExist } from "../lib/storageWait.js";
 import { redisConnection } from "../queue/redis.js";
 import { QUEUES, JOBS } from "@gad/queue-names";
+import pkg from "@prisma/client";
+const { PrismaClient } = pkg;
 
 const prisma = new PrismaClient();
-const redis = new Redis(redisConnection() as any);
+
+
+if (!process.env.REDIS_HOST) {
+  throw new Error("REDIS_HOST is not set");
+}
+
+export const redis = new Redis({
+  host: process.env.REDIS_HOST,
+  port: Number(process.env.REDIS_PORT ?? 6379),
+  maxRetriesPerRequest: null,
+  enableReadyCheck: false,
+});
+
+
+
 
 // ✅ очередь для постановки SEND_ZIP_TG
 const queue = new Queue(QUEUES.MAIN, {

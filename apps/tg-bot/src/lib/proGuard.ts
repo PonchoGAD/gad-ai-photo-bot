@@ -1,9 +1,12 @@
 // apps/tg-bot/src/lib/proGuard.ts
 import type { Context } from "telegraf";
-import { PrismaClient } from "@prisma/client";
+
 import { plansKb } from "../ui/keyboards.js";
+import pkg from "@prisma/client";
+const { PrismaClient, Prisma } = pkg;
 
 const prisma = new PrismaClient();
+
 
 /**
  * Тип PRO-фичи — для аналитики и UX

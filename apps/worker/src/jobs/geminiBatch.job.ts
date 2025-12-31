@@ -1,10 +1,12 @@
 // apps/worker/src/jobs/geminiBatch.job.ts
 import type { Queue, Job } from "bullmq";
 import { QueueEvents } from "bullmq";
-import { PrismaClient } from "@prisma/client";
 import { JOBS } from "@gad/queue-names";
+import pkg from "@prisma/client";
+const { PrismaClient } = pkg;
 
 const prisma = new PrismaClient();
+
 
 /**
  * Payload для batch-обработки Gemini

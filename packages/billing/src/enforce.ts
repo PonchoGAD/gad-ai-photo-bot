@@ -1,9 +1,15 @@
-import { PrismaClient } from "@prisma/client";
+
 import type { JobName } from "../../queue-names/src/index.js";
 import { PLANS, getBaseJobPrice } from "./plans.js";
 import { debit } from "./ledger.js";
+import type { PlanId, Plan } from "./plans.js";
+
+
+import pkg from "@prisma/client";
+const { PrismaClient } = pkg;
 
 const prisma = new PrismaClient();
+
 
 /**
  * Расчёт стоимости job
@@ -51,13 +57,21 @@ export async function enforceCredits(params: {
   if (!user) throw new Error("USER_NOT_FOUND");
   if (user.isBanned) throw new Error("USER_BANNED");
 
-  const plan = PLANS[user.plan];
+  const planId = user.planId as PlanId;
+  const plan = PLANS[planId];
+
+  if (!plan) {
+    throw new Error(`PLAN_NOT_FOUND: ${user.planId}`);
+  }
 
   if (params.payload?.premiumDesign && !plan.features.proModels) {
     throw new Error("UPGRADE_REQUIRED");
   }
 
   const { total, breakdown } = estimateCost(params.job, params.payload);
+
+  // дальше код без изменений
+
 
   // ✅ КЛЮЧЕВОЙ ФИКС
   // Оркестратор / бесплатные job’ы не списывают кредиты
@@ -89,4 +103,4 @@ export async function enforceCredits(params: {
   });
 
   return { total, breakdown };
-}
+} 

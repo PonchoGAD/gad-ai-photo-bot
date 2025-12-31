@@ -1,21 +1,18 @@
+version: "3.9"
 
 services:
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: gad
       POSTGRES_USER: gad
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: postgres
     volumes:
       - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
     restart: unless-stopped
 
   minio:
@@ -32,55 +29,38 @@ services:
     restart: unless-stopped
 
   tg-bot:
-    image: node:20-alpine
-    working_dir: /app
-    volumes:
-      - ./:/app
+    build:
+      context: .
+      target: tg-bot
     environment:
       NODE_ENV: production
       TG_BOT_TOKEN: ${TG_BOT_TOKEN}
       REDIS_HOST: redis
       REDIS_PORT: 6379
-
-      # если твой tg-bot читает ENV.* — подставь нужные имена
-      # пример:
-      # GAD_REDIS_HOST: redis
-      # GAD_REDIS_PORT: 6379
-
+      DATABASE_URL: ${DATABASE_URL}
     depends_on:
       - redis
       - postgres
-      - minio
-    command: sh -lc "corepack enable && pnpm i --frozen-lockfile=false && pnpm --filter @gad/tg-bot dev"
     restart: unless-stopped
 
   worker:
-    image: node:20-alpine
-    working_dir: /app
-    volumes:
-      - ./:/app
+    build:
+      context: .
+      target: worker
     environment:
       NODE_ENV: production
-      TG_BOT_TOKEN: ${TG_BOT_TOKEN}
-
       REDIS_HOST: redis
       REDIS_PORT: 6379
-
-      # База (важно!)
       DATABASE_URL: ${DATABASE_URL}
-
-      # MinIO / storage (примерные переменные — подстрой под @gad/storage)
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY}
       S3_SECRET_KEY: ${S3_SECRET_KEY}
       S3_BUCKET: ${S3_BUCKET}
       S3_REGION: ${S3_REGION}
-
     depends_on:
       - redis
       - postgres
       - minio
-    command: sh -lc "corepack enable && pnpm i --frozen-lockfile=false && pnpm --filter @gad/worker dev"
     restart: unless-stopped
 
 volumes:

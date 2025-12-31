@@ -2,12 +2,15 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as os from "node:os";
-import { PrismaClient } from "@prisma/client";
+
 
 import { getFilePath, putFile } from "@gad/storage";
 import { runFFmpeg } from "../providers/ffmpeg.js";
+import pkg from "@prisma/client";
+const { PrismaClient } = pkg;
 
 const prisma = new PrismaClient();
+
 
 export interface VideoJobPayload {
   imageKeys: string[];

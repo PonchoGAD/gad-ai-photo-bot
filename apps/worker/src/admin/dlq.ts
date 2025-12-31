@@ -1,10 +1,15 @@
 // apps/worker/src/admin/dlq.ts
 import "dotenv/config";
 import { Queue } from "bullmq";
-import { PrismaClient } from "@prisma/client";
+
 
 import { redisConnection } from "../queue/redis.js";
 import { QUEUES } from "@gad/queue-names";
+import pkg from "@prisma/client";
+const { PrismaClient } = pkg;
+
+const prisma = new PrismaClient();
+
 
 const DLQ_NAME = "gad_dlq";
 
@@ -19,7 +24,7 @@ type DlqPayload = {
   attemptsMade?: number;
 };
 
-const prisma = new PrismaClient();
+
 
 const dlq = new Queue<DlqPayload>(DLQ_NAME, {
   connection: redisConnection()

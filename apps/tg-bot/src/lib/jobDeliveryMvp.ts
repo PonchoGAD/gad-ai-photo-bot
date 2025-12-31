@@ -1,8 +1,15 @@
-import { PrismaClient } from "@prisma/client";
+
+
+
 import { presign } from "@gad/storage";
 import type { Context } from "telegraf";
 
+import pkg from "@prisma/client";
+const { PrismaClient, Prisma } = pkg;
+
 const prisma = new PrismaClient();
+
+
 
 /**
  * MVP listener доставки результата job в TG

@@ -2,11 +2,14 @@
 import type { Context } from "telegraf";
 import { Queue } from "bullmq";
 import { JOBS } from "@gad/queue-names";
-import { PrismaClient } from "@prisma/client";
+
 import { enforceCredits } from "@gad/billing/enforce";
 import { requirePro } from "../lib/proGuard.js";
+import pkg from "@prisma/client";
+const { PrismaClient } = pkg;
 
 const prisma = new PrismaClient();
+
 
 function normalizeTgMessageId(v: unknown): number | null {
   const n = Number(v);

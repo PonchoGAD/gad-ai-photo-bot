@@ -1,9 +1,13 @@
 // apps/worker/src/lib/tgNotifier.ts
-import { PrismaClient } from "@prisma/client";
+import pkg from "@prisma/client";
+const { PrismaClient } = pkg;
+
+const prisma = new PrismaClient();
+
 
 /* ================== DB ================== */
 
-const prisma = new PrismaClient();
+
 
 /* ================== TYPES ================== */
 

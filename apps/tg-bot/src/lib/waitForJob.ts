@@ -1,7 +1,10 @@
 // apps/tg-bot/src/lib/waitForJob.ts
-import { PrismaClient } from "@prisma/client";
+import pkg from "@prisma/client";
+const { PrismaClient } = pkg;
 
 const prisma = new PrismaClient();
+
+
 
 /**
  * Ожидаем завершение job (DONE / FAILED)

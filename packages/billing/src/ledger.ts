@@ -1,7 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import pkg from "@prisma/client";
+
 
 export type LedgerEntryType = "CREDIT" | "DEBIT" | "REFUND";
 export type LedgerMeta = Record<string, any>;
+
+const { PrismaClient } = pkg;
 
 const prisma = new PrismaClient();
 

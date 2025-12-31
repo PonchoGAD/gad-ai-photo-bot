@@ -1,7 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+
 import { readZipAsBuffer } from "../lib/readZipAsBuffer.js";
+import pkg from "@prisma/client";
+const { PrismaClient } = pkg;
 
 const prisma = new PrismaClient();
+
 
 /* ================== ENV ================== */
 
