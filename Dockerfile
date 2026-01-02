@@ -31,7 +31,7 @@ ENV NODE_ENV=production
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps ./apps
-COPY --from=builder /app/apps/tg-bot/dist ./apps/tg-bot/dist
+
 
 
 COPY --from=deps /app/node_modules ./node_modules
@@ -50,7 +50,7 @@ ENV NODE_ENV=production
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps ./apps
-COPY --from=builder /app/apps/worker/dist ./apps/worker/dist
+
 
 
 COPY --from=deps /app/node_modules ./node_modules
