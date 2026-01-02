@@ -19,10 +19,6 @@ FROM deps AS builder
 
 RUN pnpm -w build
 
-RUN pnpm -w build 
-
-
-
 FROM node:20-bookworm-slim AS tg-bot
 WORKDIR /app
 ENV NODE_ENV=production
@@ -31,8 +27,6 @@ ENV NODE_ENV=production
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps ./apps
-
-
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
@@ -46,12 +40,9 @@ FROM node:20-bookworm-slim AS worker
 WORKDIR /app
 ENV NODE_ENV=production
 
-
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps ./apps
-
-
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
