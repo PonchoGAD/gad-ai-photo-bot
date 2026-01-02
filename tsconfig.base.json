@@ -1,7 +1,13 @@
 {
   "compilerOptions": {
+    
     "target": "ES2022",
     "lib": ["ES2022"],
+
+    "baseUrl": ".",
+    "paths": {
+      "@gad/*": ["packages/*/src"],
+    },
 
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
@@ -16,3 +22,5 @@
     "resolveJsonModule": true
   }
 }
+
+
