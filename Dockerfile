@@ -1,5 +1,5 @@
 
-FROM node:20-bookworm-slim AS base
+FROM node:20-bullseye-slim AS base
 WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@9.15.3 --activate
@@ -19,7 +19,7 @@ FROM deps AS builder
 
 RUN pnpm -r --sort build
 
-FROM node:20-bookworm-slim AS tg-bot
+FROM node:20-bullseye-slim AS tg-bot
 WORKDIR /app
 ENV NODE_ENV=production
 
@@ -31,13 +31,12 @@ COPY --from=builder /app/apps ./apps
 CMD ["node", "apps/tg-bot/dist/bot.js"]
 
 
-FROM node:20-bookworm-slim AS worker
+FROM node:20-bullseye-slim AS worker
 WORKDIR /app
 ENV NODE_ENV=production
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps ./apps
-
 
 CMD ["node", "apps/worker/dist/worker.js"]
