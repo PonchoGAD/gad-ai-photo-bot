@@ -57,11 +57,11 @@ export async function enforceCredits(params: {
   if (!user) throw new Error("USER_NOT_FOUND");
   if (user.isBanned) throw new Error("USER_BANNED");
 
-  const planId = user.plan.Id as PlanId;
+  const planId = user.plan as PlanId;
   const plan = PLANS[planId];
 
   if (!plan) {
-    throw new Error(`PLAN_NOT_FOUND: ${user.planId}`);
+    throw new Error(`PLAN_NOT_FOUND: ${user.plan}`);
   }
 
   if (params.payload?.premiumDesign && !plan.features.proModels) {
