@@ -17,7 +17,7 @@ RUN pnpm install --frozen-lockfile
 
 FROM deps AS builder
 
-RUN pnpm -w build
+RUN pnpm -r --sort build
 
 FROM node:20-bookworm-slim AS tg-bot
 WORKDIR /app
@@ -27,11 +27,6 @@ ENV NODE_ENV=production
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps ./apps
-
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages ./packages
-COPY --from=deps /app/apps ./apps
-
 
 CMD ["node", "apps/tg-bot/dist/bot.js"]
 
@@ -43,10 +38,6 @@ ENV NODE_ENV=production
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps ./apps
-
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages ./packages
-COPY --from=deps /app/apps ./apps
 
 
 CMD ["node", "apps/worker/dist/worker.js"]
