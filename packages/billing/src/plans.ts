@@ -1,5 +1,6 @@
 // packages/billing/src/plans.ts
-import type { JobName } from "../../queue-names/src/index.js";
+import type { JobName } from "@gad/queue-names";
+
 
 
 

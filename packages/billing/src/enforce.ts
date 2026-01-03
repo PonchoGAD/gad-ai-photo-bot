@@ -1,5 +1,5 @@
 
-import type { JobName } from "../../queue-names/src/index.js";
+import type { JobName } from "@gad/queue-names";
 import { PLANS, getBaseJobPrice } from "./plans.js";
 import { debit } from "./ledger.js";
 import type { PlanId, Plan } from "./plans.js";
@@ -57,7 +57,7 @@ export async function enforceCredits(params: {
   if (!user) throw new Error("USER_NOT_FOUND");
   if (user.isBanned) throw new Error("USER_BANNED");
 
-  const planId = user.planId as PlanId;
+  const planId = user.plan.Id as PlanId;
   const plan = PLANS[planId];
 
   if (!plan) {

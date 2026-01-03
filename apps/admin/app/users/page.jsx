@@ -14,12 +14,12 @@ export default async function UsersPage() {
         <table className="w-full text-sm">
           <thead className="bg-white/5">
             <tr>
-              <th className="text-left px-3 py-2">ID</th>
-              <th className="text-left px-3 py-2">Telegram</th>
-              <th className="text-left px-3 py-2">Username</th>
-              <th className="text-left px-3 py-2">Plan</th>
-              <th className="text-left px-3 py-2">Credits</th>
-              <th className="text-left px-3 py-2">Banned</th>
+              <th className="px-3 py-2 text-left">ID</th>
+              <th className="px-3 py-2 text-left">Telegram</th>
+              <th className="px-3 py-2 text-left">Username</th>
+              <th className="px-3 py-2 text-left">Plan</th>
+              <th className="px-3 py-2 text-left">Credits</th>
+              <th className="px-3 py-2 text-left">Banned</th>
             </tr>
           </thead>
           <tbody>
@@ -28,7 +28,7 @@ export default async function UsersPage() {
                 <td className="px-3 py-2">{u.telegramId}</td>
                 <td className="px-3 py-2">{u.username ?? "-"}</td>
                 <td className="px-3 py-2">{u.plan}</td>
-                <td className="px-3 py-2">{u.credits}</td>
+                <td className="px-3 py-2">{u.credits ?? 0}</td>
                 <td className="px-3 py-2">{u.isBanned ? "yes" : "no"}</td>
               </tr>))}
           </tbody>

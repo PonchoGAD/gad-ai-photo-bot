@@ -32,7 +32,7 @@ export default async function AdminHome() {
               <div className="text-xs text-white/60">
                 {j.status} • {new Date(j.createdAt).toLocaleString()}
               </div>
-              {j.error && <div className="text-xs text-red-400 mt-2">{j.error}</div>}
+              {j.error && (<div className="text-xs text-red-400 mt-2">{j.error}</div>)}
             </div>))}
         </div>
       </div>

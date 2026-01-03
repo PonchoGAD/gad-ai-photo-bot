@@ -1,4 +1,11 @@
 import { NextResponse } from "next/server";
+type UserSummary = {
+    id: string;
+    telegramId: string;
+    plan: string;
+    credits: number | null;
+    isBanned: boolean;
+};
 export declare function GET(): Promise<NextResponse<{
     error: string;
 }> | NextResponse<{
@@ -6,11 +13,6 @@ export declare function GET(): Promise<NextResponse<{
         users: number;
         totalCredits: number;
     };
-    users: {
-        id: string;
-        telegramId: string;
-        plan: import("@prisma/client").$Enums.Plan;
-        credits: number;
-        isBanned: boolean;
-    }[];
+    users: UserSummary[];
 }>>;
+export {};

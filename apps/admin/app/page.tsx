@@ -3,6 +3,15 @@ import { prisma } from "@/lib/prisma";
 import { StatCard } from "@/components/StatCard";
 import { requireAdmin } from "@/lib/auth";
 
+type AdminJob = {
+  id: string;
+  type: string;
+  status: string;
+  error: string | null;
+  createdAt: Date;
+};
+
+
 export default async function AdminHome() {
   requireAdmin();
 
@@ -11,7 +20,7 @@ export default async function AdminHome() {
     prisma.job.count()
   ]);
 
-  const lastJobs = await prisma.job.findMany({
+  const lastJobs: AdminJob[] = await prisma.job.findMany({
     orderBy: { createdAt: "desc" },
     take: 10
   });
@@ -33,13 +42,18 @@ export default async function AdminHome() {
       <div>
         <h2 className="text-lg font-semibold mb-3">Last jobs</h2>
         <div className="space-y-2">
-          {lastJobs.map((j) => (
-            <div key={j.id} className="border border-white/10 rounded p-3 bg-white/5">
+          {lastJobs.map((j: AdminJob) => (
+            <div
+              key={j.id}
+              className="border border-white/10 rounded p-3 bg-white/5"
+            >
               <div className="font-semibold">{j.type}</div>
               <div className="text-xs text-white/60">
                 {j.status} • {new Date(j.createdAt).toLocaleString()}
               </div>
-              {j.error && <div className="text-xs text-red-400 mt-2">{j.error}</div>}
+              {j.error && (
+                <div className="text-xs text-red-400 mt-2">{j.error}</div>
+              )}
             </div>
           ))}
         </div>

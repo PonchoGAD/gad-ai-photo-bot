@@ -2,10 +2,19 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 
+type AdminUser = {
+  id: string;
+  telegramId: string;
+  plan: string;
+  credits: number | null;
+  isBanned: boolean;
+};
+
+
 export default async function BillingPage() {
   requireAdmin();
 
-  const users = await prisma.user.findMany({
+  const users: AdminUser[] = await prisma.user.findMany({
     orderBy: { credits: "desc" },
     take: 200
   });
@@ -23,8 +32,11 @@ export default async function BillingPage() {
       </div>
 
       <div className="space-y-2">
-        {users.map((u) => (
-          <div key={u.id} className="border border-white/10 rounded p-3 bg-white/5">
+        {users.map((u: AdminUser) => (
+          <div
+            key={u.id}
+            className="border border-white/10 rounded p-3 bg-white/5"
+          >
             <div className="text-sm text-white/60">User</div>
             <div className="font-semibold">{u.telegramId}</div>
             <div className="text-sm mt-2">
