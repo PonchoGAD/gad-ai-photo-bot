@@ -12,12 +12,19 @@ COPY packages ./packages
 COPY prisma ./prisma
 COPY tsconfig*.json turbo.json ./
 
+RUN pnpm config set fetch-retries 5 \
+ && pnpm config set fetch-retry-factor 2 \
+ && pnpm config set fetch-retry-mintimeout 20000 \
+ && pnpm config set fetch-retry-maxtimeout 120000
+
+
 RUN pnpm install --frozen-lockfile
 
 
 FROM deps AS builder
 
-RUN pnpm -r --sort build
+RUN pnpm exec tsc -b
+
 
 FROM node:20-bullseye-slim AS tg-bot
 WORKDIR /app
