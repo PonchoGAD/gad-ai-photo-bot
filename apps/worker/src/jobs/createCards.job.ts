@@ -1,4 +1,6 @@
-import type { Queue } from "bullmq";
+// apps/worker/src/jobs/createCards.job.ts
+
+import type BullMQ from "bullmq";
 import * as path from "node:path";
 
 import { Redis } from "ioredis";
@@ -8,12 +10,9 @@ import { WB_PRESET } from "@gad/core/presets/wb";
 import { OZON_PRESET } from "@gad/core/presets/ozon";
 import { getJobOptions } from "../lib/retryPolicy.js";
 import { redisConnection } from "../queue/redis.js";
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
+import { prisma } from "@gad/db/prisma";
 
-const prisma = new PrismaClient();
-
-
+type Queue = BullMQ.Queue;
 
 if (!process.env.REDIS_HOST) {
   throw new Error("REDIS_HOST is not set");
@@ -23,11 +22,8 @@ export const redis = new Redis({
   host: process.env.REDIS_HOST,
   port: Number(process.env.REDIS_PORT ?? 6379),
   maxRetriesPerRequest: null,
-  enableReadyCheck: false,
+  enableReadyCheck: false
 });
-
-
-
 
 const redisclient = new Redis(redisConnection() as any);
 

@@ -1,0 +1,10 @@
+{
+  "name": "@gad/db",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./prisma": "./dist/prisma.js"
+  },
+  "types": "./dist/prisma.d.ts"
+}

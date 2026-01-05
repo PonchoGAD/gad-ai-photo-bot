@@ -21,6 +21,7 @@
     { "path": "../../packages/storage" },
     { "path": "../../packages/core" },
     { "path": "../../packages/templates" },
-    { "path": "../../packages/billing" }
+    { "path": "../../packages/billing" },
+    { "path": "../../packages/db" }
   ]
 }

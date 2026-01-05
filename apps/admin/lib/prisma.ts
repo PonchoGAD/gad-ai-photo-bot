@@ -1,15 +1,19 @@
 // apps/admin/lib/prisma.ts
-import pkg from "@prisma/client";
+import { createRequire } from "node:module";
 
-const { PrismaClient } = pkg;
+const require = createRequire(import.meta.url);
+const { PrismaClient } = require("@prisma/client") as typeof import("@prisma/client");
 
-
-const globalForPrisma = globalThis as unknown as { prisma?: InstanceType<typeof PrismaClient> };
+const globalForPrisma = globalThis as unknown as {
+  prisma?: InstanceType<typeof PrismaClient>;
+};
 
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"]
+    log: process.env.NODE_ENV === "development"
+      ? ["error", "warn"]
+      : ["error"],
   });
 
 if (process.env.NODE_ENV !== "production") {

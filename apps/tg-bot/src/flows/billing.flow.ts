@@ -1,12 +1,7 @@
 // apps/tg-bot/src/flows/billing.flow.ts
 import type { Context } from "telegraf";
-
 import { billingKb, plansKb, topupKb } from "../ui/keyboards.js";
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
-
-const prisma = new PrismaClient();
-
+import { prisma } from "@gad/db/prisma";
 
 /**
  * Главный экран billing
@@ -25,8 +20,8 @@ export async function billingHomeFlow(ctx: Context) {
 
   await ctx.reply(
     `💳 *Ваш баланс*\n\n` +
-      `Тариф: *${user.plan}*\n` +
-      `Credits: *${user.credits}*\n`,
+    `Тариф: *${user.plan}*\n` +
+    `Credits: *${user.credits}*\n`,
     {
       parse_mode: "Markdown",
       reply_markup: billingKb()
@@ -34,16 +29,13 @@ export async function billingHomeFlow(ctx: Context) {
   );
 }
 
-/**
- * Экран тарифов
- */
 export async function billingPlansFlow(ctx: Context) {
   await ctx.reply(
     "⬆️ *Выберите тариф*\n\n" +
-      "FREE — базовые функции\n" +
-      "STARTER — batch, больше лимитов\n" +
-      "PRO — Gemini PRO, без watermark\n" +
-      "STUDIO — приоритет, большие объёмы\n",
+    "FREE — базовые функции\n" +
+    "STARTER — batch, больше лимитов\n" +
+    "PRO — Gemini PRO, без watermark\n" +
+    "STUDIO — приоритет, большие объёмы\n",
     {
       parse_mode: "Markdown",
       reply_markup: plansKb()
@@ -51,13 +43,9 @@ export async function billingPlansFlow(ctx: Context) {
   );
 }
 
-/**
- * Экран пополнения
- */
 export async function billingTopupFlow(ctx: Context) {
   await ctx.reply(
-    "➕ *Пополнение баланса*\n\n" +
-      "Выберите способ оплаты:",
+    "➕ *Пополнение баланса*\n\nВыберите способ оплаты:",
     {
       parse_mode: "Markdown",
       reply_markup: topupKb()

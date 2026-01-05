@@ -1,7 +1,24 @@
 // apps/worker/src/worker.ts
 import "dotenv/config";
-import { Worker, Queue } from "bullmq";
+import { createRequire } from "node:module";
 
+const require = createRequire(import.meta.url);
+
+// ─────────────────────────────────────────────
+// BullMQ — через require (иначе NodeNext ломается)
+// ─────────────────────────────────────────────
+const BullMQ = require("bullmq") as typeof import("bullmq");
+type Job = import("bullmq").Job;
+
+const { Worker, Queue } = BullMQ;
+
+// ─────────────────────────────────────────────
+// Prisma — ТОЛЬКО через require
+// ─────────────────────────────────────────────
+const PrismaPkg = require("@prisma/client") as typeof import("@prisma/client");
+const prisma = new PrismaPkg.PrismaClient();
+
+// ─────────────────────────────────────────────
 
 import { redisConnection } from "./queue/redis.js";
 import { JOBS, QUEUES } from "@gad/queue-names";
@@ -14,7 +31,6 @@ import { markJobStart, markJobEnd } from "./lib/metrics.js";
 
 import { withSLA } from "./lib/jobSLA.js";
 import { sendZipTgJob } from "./jobs/sendZipTg.job.js";
-
 import { renderTemplateJob } from "./jobs/renderTemplate.job.js";
 import { exportZipJob } from "./jobs/exportZip.job.js";
 import { createCardsOrchestrator } from "./jobs/createCards.job.js";
@@ -22,17 +38,14 @@ import { preprocessJob } from "./jobs/preprocess.job.js";
 import { backgroundJob } from "./jobs/background.job.js";
 import { geminiCardJob } from "./jobs/geminiCard.job.js";
 import { videoJob } from "./jobs/video.job.js";
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
 
-const prisma = new PrismaClient();
+// ─────────────────────────────────────────────
 
-
-const queue = new Queue(QUEUES.MAIN, {
+const mainQueue = new Queue(QUEUES.MAIN, {
   connection: redisConnection()
 });
 
-// 🔴 DLQ
+// DLQ
 const dlq = new Queue("gad_dlq", {
   connection: redisConnection()
 });
@@ -40,22 +53,22 @@ const dlq = new Queue("gad_dlq", {
 console.log("Worker starting...");
 
 function isKnownJobName(name: string): name is JobName {
-  return Object.values(JOBS).includes(name as any);
+  return Object.values(JOBS).includes(name as JobName);
 }
 
 new Worker(
   QUEUES.MAIN,
-  async (job) => {
+  async (job: Job) => {
     const { userId, jobId, premium, batchMeta } = (job.data || {}) as any;
-
     const rawName = job.name;
+
     console.log("[WORKER] received job", rawName, job.data);
 
     let cost = 0;
     let costBreakdown: Record<string, number> | undefined;
 
     try {
-      // 1️⃣ Job → RUNNING
+      // 1️⃣ mark RUNNING
       if (jobId) {
         await prisma.job.update({
           where: { id: jobId },
@@ -65,13 +78,14 @@ new Worker(
         await markJobStart(jobId);
       }
 
-      // 2️⃣ Guard
+      // 2️⃣ guard
       if (!isKnownJobName(rawName)) {
         throw new Error(`Unknown job: ${rawName}`);
       }
+
       const jobName: JobName = rawName;
 
-      // 3️⃣ 💰 DEBIT (only GEMINI)
+      // 3️⃣ debit (only Gemini)
       if (jobName === JOBS.GEMINI_CARD) {
         const estimated = estimateCost(jobName, { premium });
         cost = estimated.total;
@@ -88,7 +102,7 @@ new Worker(
         }
       }
 
-      // 4️⃣ EXECUTE
+      // 4️⃣ execute
       const result = await withSLA(jobName, async () => {
         switch (jobName) {
           case JOBS.PREPROCESS:
@@ -107,7 +121,7 @@ new Worker(
             return videoJob(job.data);
 
           case JOBS.CREATE_CARDS:
-            return createCardsOrchestrator(queue, job.data);
+            return createCardsOrchestrator(mainQueue, job.data);
 
           case JOBS.EXPORT_ZIP:
             return exportZipJob(job.data);
@@ -120,7 +134,6 @@ new Worker(
         }
       });
 
-      // ✅ metrics success
       if (jobId) {
         await markJobEnd({
           jobId,
@@ -135,7 +148,6 @@ new Worker(
       const errorMsg = String(err?.message ?? err);
       console.error("Job failed:", errorMsg);
 
-      // A) DB FAILED
       if (jobId) {
         await prisma.job.update({
           where: { id: jobId },
@@ -150,7 +162,6 @@ new Worker(
         });
       }
 
-      // B) refund
       if (userId && cost > 0 && isKnownJobName(rawName)) {
         const decision = decideRefundOnFail({ job: rawName, cost });
 
@@ -169,29 +180,24 @@ new Worker(
         }
       }
 
-      // C) DLQ (last attempt)
       const attempts = Number((job.opts as any)?.attempts ?? 1);
       const attemptsMade = Number((job as any)?.attemptsMade ?? 0);
       const isLastAttempt = attemptsMade + 1 >= attempts;
 
       if (isLastAttempt) {
-        try {
-          await dlq.add(
-            "failed_job",
-            {
-              jobName: rawName,
-              jobId,
-              userId,
-              payload: job.data,
-              error: errorMsg,
-              attempts,
-              attemptsMade
-            },
-            { removeOnComplete: 200, removeOnFail: 200 }
-          );
-        } catch (e) {
-          console.warn("[DLQ] push failed:", e);
-        }
+        await dlq.add(
+          "failed_job",
+          {
+            jobName: rawName,
+            jobId,
+            userId,
+            payload: job.data,
+            error: errorMsg,
+            attempts,
+            attemptsMade
+          },
+          { removeOnComplete: 200, removeOnFail: 200 }
+        );
       }
 
       throw err;

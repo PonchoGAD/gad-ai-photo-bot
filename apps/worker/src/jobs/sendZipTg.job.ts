@@ -1,10 +1,7 @@
+// apps/worker/src/jobs/sendZipTg.job.ts
 
 import { readZipAsBuffer } from "../lib/readZipAsBuffer.js";
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
-
-const prisma = new PrismaClient();
-
+import { prisma } from "@gad/db/prisma";
 
 /* ================== ENV ================== */
 
@@ -45,7 +42,7 @@ async function tgSendDocument(params: {
   form.append("chat_id", String(params.chatId));
   if (params.caption) form.append("caption", params.caption);
 
-  // ✅ TS-safe: Buffer -> Uint8Array -> BlobPart
+  // ✅ TS-safe: Buffer → Uint8Array → Blob
   const bytes = new Uint8Array(params.buffer);
   const blob = new Blob([bytes], { type: "application/zip" });
 
@@ -56,7 +53,9 @@ async function tgSendDocument(params: {
     { method: "POST", body: form as any }
   );
 
-  const json = (await res.json().catch(() => null)) as TelegramResponse<any> | null;
+  const json = (await res.json().catch(() => null)) as
+    | TelegramResponse<any>
+    | null;
 
   if (!res.ok || !json?.ok) {
     throw new Error(
@@ -73,7 +72,7 @@ export async function sendZipTgJob(data: SendZipTgPayload) {
   const { jobId, tgUserId } = data;
 
   const job = await prisma.job.findUnique({
-    where: { id: jobId }
+    where: { id: jobId },
   });
 
   if (!job) throw new Error("JOB_NOT_FOUND");
@@ -85,10 +84,13 @@ export async function sendZipTgJob(data: SendZipTgPayload) {
     return;
   }
 
-  const zipKey = (job.outputJson as any)?.zipKey ?? (job.outputJson as any)?.key;
+  const zipKey =
+    (job.outputJson as any)?.zipKey ??
+    (job.outputJson as any)?.key;
+
   if (!zipKey) throw new Error("ZIP_KEY_MISSING");
 
-  // 📦 читаем ZIP (MinIO/S3) -> Buffer
+  // 📦 читаем ZIP (MinIO / S3 / local)
   const zipBuffer = await readZipAsBuffer(zipKey);
 
   // 📤 отправляем ZIP
@@ -96,7 +98,7 @@ export async function sendZipTgJob(data: SendZipTgPayload) {
     chatId: tgUserId,
     buffer: zipBuffer,
     filename: "cards.zip",
-    caption: "✅ Архив с карточками готов"
+    caption: "✅ Архив с карточками готов",
   });
 
   // ✅ фиксируем доставку
@@ -105,12 +107,12 @@ export async function sendZipTgJob(data: SendZipTgPayload) {
     data: {
       tgDeliveredAt: new Date(),
       tgDeliveryStatus: "SENT",
-      tgDeliveryError: null
-    }
+      tgDeliveryError: null,
+    },
   });
 
   console.log("[TG] ZIP delivered", {
     jobId,
-    messageId: sent?.result?.message_id
+    messageId: sent?.result?.message_id,
   });
 }

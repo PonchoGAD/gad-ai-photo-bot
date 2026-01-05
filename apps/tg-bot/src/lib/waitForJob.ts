@@ -1,10 +1,7 @@
 // apps/tg-bot/src/lib/waitForJob.ts
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
 
-const prisma = new PrismaClient();
-
-
+// ✅ Prisma — ТОЛЬКО singleton
+import { prisma } from "@gad/db/prisma";
 
 /**
  * Ожидаем завершение job (DONE / FAILED)

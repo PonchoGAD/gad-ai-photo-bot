@@ -1,12 +1,8 @@
-import pkg from "@prisma/client";
-
+// packages/billing/src/ledger.ts
+import { prisma } from "@gad/db/prisma";
 
 export type LedgerEntryType = "CREDIT" | "DEBIT" | "REFUND";
 export type LedgerMeta = Record<string, any>;
-
-const { PrismaClient } = pkg;
-
-const prisma = new PrismaClient();
 
 /**
  * Ledger — append-only.
@@ -132,7 +128,6 @@ export function addCredits(userId: string, amount: number, reason: string) {
 
 /**
  * Ensure user exists (idempotent).
- * Вызывается на /start и перед любым billing/job.
  */
 export async function ensureUser(tgUserId: number) {
   const telegramId = String(tgUserId);
@@ -141,9 +136,7 @@ export async function ensureUser(tgUserId: number) {
     where: { telegramId }
   });
 
-  if (existing) {
-    return existing;
-  }
+  if (existing) return existing;
 
   return prisma.user.create({
     data: {

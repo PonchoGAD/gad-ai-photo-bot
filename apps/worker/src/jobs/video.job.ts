@@ -3,14 +3,9 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as os from "node:os";
 
-
 import { getFilePath, putFile } from "@gad/storage";
 import { runFFmpeg } from "../providers/ffmpeg.js";
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
-
-const prisma = new PrismaClient();
-
+import { prisma } from "@gad/db/prisma";
 
 export interface VideoJobPayload {
   imageKeys: string[];
@@ -25,17 +20,21 @@ export async function videoJob(data: VideoJobPayload) {
   const outPath = path.join(tmpDir, "out.mp4");
 
   try {
-    const files = await Promise.all(data.imageKeys.map((k) => getFilePath(k)));
+    const files = await Promise.all(
+      data.imageKeys.map((k) => getFilePath(k))
+    );
 
     const dur = Number(data.secondsPerImage ?? 1);
 
-    // concat demuxer: duration применяется к предыдущему file, поэтому
-    // делаем duration для каждого, последний — без duration (или тоже можно)
+    // concat demuxer:
+    // duration применяется к предыдущему file
     const lines: string[] = [];
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
       lines.push(`file '${String(f).replaceAll("'", "\\'")}'`);
-      if (i < files.length - 1) lines.push(`duration ${dur}`);
+      if (i < files.length - 1) {
+        lines.push(`duration ${dur}`);
+      }
     }
 
     await fs.writeFile(listPath, lines.join("\n"), "utf8");

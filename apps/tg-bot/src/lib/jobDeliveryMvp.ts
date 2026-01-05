@@ -1,15 +1,11 @@
+// apps/tg-bot/src/lib/jobDeliveryMvp.ts
 
-
-
-import { presign } from "@gad/storage";
 import type { Context } from "telegraf";
 
-import pkg from "@prisma/client";
-const { PrismaClient, Prisma } = pkg;
+import { presign } from "@gad/storage";
 
-const prisma = new PrismaClient();
-
-
+// ✅ Prisma — ТОЛЬКО singleton
+import { prisma } from "@gad/db/prisma";
 
 /**
  * MVP listener доставки результата job в TG
@@ -48,7 +44,12 @@ export async function deliverJobResultMvp(params: {
     }
 
     if (job.status === "DONE") {
-      const out: any = job.outputJson ?? {};
+      const out = (job.outputJson ?? {}) as {
+        url?: string;
+        key?: string;
+        zipKey?: string;
+        localPath?: string;
+      };
 
       // 1️⃣ local fallback (если MinIO недоступен)
       if (out.localPath) {
@@ -70,7 +71,7 @@ export async function deliverJobResultMvp(params: {
 
       // 3️⃣ если есть только key — подписываем
       if (out.key || out.zipKey) {
-        const key = out.key ?? out.zipKey;
+        const key = out.key ?? out.zipKey!;
         const url = await presign(key, 60 * 60);
 
         await ctx.replyWithDocument(

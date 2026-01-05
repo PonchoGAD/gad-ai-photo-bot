@@ -1,15 +1,9 @@
-
 import type { JobName } from "@gad/queue-names";
 import { PLANS, getBaseJobPrice } from "./plans.js";
 import { debit } from "./ledger.js";
 import type { PlanId, Plan } from "./plans.js";
 
-
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
-
-const prisma = new PrismaClient();
-
+import { prisma } from "@gad/db/prisma";
 
 /**
  * Расчёт стоимости job
@@ -70,9 +64,6 @@ export async function enforceCredits(params: {
 
   const { total, breakdown } = estimateCost(params.job, params.payload);
 
-  // дальше код без изменений
-
-
   // ✅ КЛЮЧЕВОЙ ФИКС
   // Оркестратор / бесплатные job’ы не списывают кредиты
   if (total <= 0) {
@@ -103,4 +94,4 @@ export async function enforceCredits(params: {
   });
 
   return { total, breakdown };
-} 
+}

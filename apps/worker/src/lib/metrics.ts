@@ -1,8 +1,5 @@
-import pkg from "@prisma/client";
+import { prisma } from "@gad/db/prisma";
 
-const { PrismaClient, Prisma } = pkg;
-
-const prisma = new PrismaClient();
 
 /* ===============================
    TYPES

@@ -1,8 +1,8 @@
 // apps/worker/src/jobs/renderTemplate.job.ts
+
 import * as path from "node:path";
 import * as os from "node:os";
 import * as fs from "node:fs/promises";
-
 
 import { renderHtmlToPng } from "@gad/templates/render";
 import type { RenderPayload } from "@gad/templates/types";
@@ -10,14 +10,9 @@ import { putFile, getFilePath } from "@gad/storage";
 import { waitUntilObjectExists } from "../lib/storageWait.js";
 import { redisConnection } from "../queue/redis.js";
 import { JOBS, QUEUES } from "@gad/queue-names";
-import { Redis } from 'ioredis';
-import pkg from "@prisma/client";
+import { Redis } from "ioredis";
 
-const { PrismaClient } = pkg;
-
-const prisma = new PrismaClient();
-
-
+import { prisma } from "@gad/db/prisma";
 
 if (!process.env.REDIS_HOST) {
   throw new Error("REDIS_HOST is not set");
@@ -30,9 +25,6 @@ export const redis = new Redis({
   enableReadyCheck: false,
 });
 
-
-
-
 export type RenderTemplateJobPayload = {
   htmlPath: string;
   payload: RenderPayload;
@@ -41,12 +33,10 @@ export type RenderTemplateJobPayload = {
   outKey: string;
   jobId?: string;
   tgUserId?: number;
-   tgMessageId?: number;
+  tgMessageId?: number;
 };
 
-/**
- * ---------- helpers ----------
- */
+/* ================== helpers ================== */
 
 function localStorageRoot(): string {
   const repoRoot = path.resolve(process.cwd(), "..", "..");
@@ -164,9 +154,8 @@ async function safePutFile(tmp: string, key: string, contentType: string) {
   }
 }
 
-/**
- * ---------- job ----------
- */
+/* ================== job ================== */
+
 export async function renderTemplateJob(data: RenderTemplateJobPayload) {
   const tmp = path.join(os.tmpdir(), `card-${Date.now()}.png`);
 
@@ -175,7 +164,7 @@ export async function renderTemplateJob(data: RenderTemplateJobPayload) {
 
     const payload: RenderPayload = {
       ...data.payload,
-      imageUrl: await imageKeyToDataUrl(data.payload.imageUrl)
+      imageUrl: await imageKeyToDataUrl(data.payload.imageUrl),
     };
 
     await renderHtmlToPng({
@@ -183,14 +172,14 @@ export async function renderTemplateJob(data: RenderTemplateJobPayload) {
       payload,
       width: data.width,
       height: data.height,
-      outputPath: tmp
+      outputPath: tmp,
     });
 
     await safePutFile(tmp, data.outKey, "image/png");
 
     await waitUntilObjectExists(data.outKey, {
       timeoutMs: 10_000,
-      intervalMs: 500
+      intervalMs: 500,
     });
 
     const result = { key: data.outKey };
@@ -204,26 +193,17 @@ export async function renderTemplateJob(data: RenderTemplateJobPayload) {
       if (expected > 0 && done === expected) {
         const lockKey = `render:zip:lock:${data.jobId}`;
 
-        // ✅ атомарный lock (без race)
-        const locked = await redis.set(
-          lockKey,
-          "1",
-          "EX",
-          600,
-          "NX"
-        );
-
+        const locked = await redis.set(lockKey, "1", "EX", 600, "NX");
         if (!locked) return result;
 
         const job = await prisma.job.findUnique({
-          where: { id: data.jobId }
+          where: { id: data.jobId },
         });
 
         if (!job) {
           throw new Error("JOB_NOT_FOUND");
         }
 
-        // ✅ корректный источник render-keys
         const outputJson = job.outputJson as any;
         const keys: string[] =
           outputJson?.render?.keys ??
@@ -236,16 +216,14 @@ export async function renderTemplateJob(data: RenderTemplateJobPayload) {
 
         const zipKey = `exports/${job.userId}/${Date.now()}.zip`;
 
-        // чистим counters (lock оставляем)
         await redis.del(`render:done:${data.jobId}`);
         await redis.del(`render:expected:${data.jobId}`);
 
-        const { Queue } = await import("bullmq");
-        const queue = new Queue(QUEUES.MAIN, {
-          connection: redisConnection()
+        const Bull = await import("bullmq");
+        const queue = new Bull.default.Queue(QUEUES.MAIN, {
+          connection: redisConnection(),
         });
 
-        // 🔑 tgUserId берём ТОЛЬКО из inputJson
         const input = job.inputJson as any;
 
         await queue.add(
@@ -255,7 +233,7 @@ export async function renderTemplateJob(data: RenderTemplateJobPayload) {
             zipKey,
             jobId: job.id,
             tgUserId: input?.tgUserId,
-            tgMessageId: job.tgMessageId ?? input?.tgMessageId
+            tgMessageId: job.tgMessageId ?? input?.tgMessageId,
           },
           { attempts: 1 }
         );
@@ -269,8 +247,8 @@ export async function renderTemplateJob(data: RenderTemplateJobPayload) {
         where: { id: data.jobId },
         data: {
           status: "FAILED",
-          error: String(err?.message ?? err)
-        }
+          error: String(err?.message ?? err),
+        },
       });
     }
     throw err;
@@ -278,4 +256,3 @@ export async function renderTemplateJob(data: RenderTemplateJobPayload) {
     await fs.unlink(tmp).catch(() => {});
   }
 }
-

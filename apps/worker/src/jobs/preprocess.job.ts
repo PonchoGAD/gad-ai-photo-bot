@@ -1,14 +1,11 @@
 // apps/worker/src/jobs/preprocess.job.ts
+
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as os from "node:os";
 
 import { putFile } from "@gad/storage";
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
-
-const prisma = new PrismaClient();
-
+import { prisma } from "@gad/db/prisma";
 
 export type PreprocessJobPayload = {
   inputPath: string; // локальный путь (пока так)

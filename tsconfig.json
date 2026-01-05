@@ -3,6 +3,13 @@
   
   "compilerOptions": {
     "composite": true,
+    "baseUrl": ".",
+    "paths": {
+      "@gad/*": ["packages/*/src"],
+      "@gad/*/*": ["packages/*/src/*"],
+      "@gad/db/prisma": ["packages/db/src/prisma.ts"]
+    }
+  },
     // File Layout
     // "rootDir": "./src",
     // "outDir": "./dist",
@@ -11,7 +18,7 @@
     // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
     "target": "esnext",
-    "types": [],
+    "types": ["node"],
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],
@@ -42,8 +49,8 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-  }
-,
+  
+
 
 "files": [],
   "references": [

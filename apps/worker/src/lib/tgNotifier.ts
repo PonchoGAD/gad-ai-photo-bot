@@ -1,13 +1,14 @@
 // apps/worker/src/lib/tgNotifier.ts
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
-
-const prisma = new PrismaClient();
-
+import { prisma } from "@gad/db/prisma";
 
 /* ================== DB ================== */
 
-
+/**
+ * ВАЖНО:
+ * - PrismaClient здесь НЕ создаём (singleton уже в @gad/db/prisma)
+ * - prisma импортируем и используем только как shared instance
+ * - В этом файле БД может использоваться для будущих сценариев логирования/статусов
+ */
 
 /* ================== TYPES ================== */
 
@@ -112,19 +113,13 @@ async function tgCall<T = any>(
   const json = (await res.json().catch(() => null)) as TelegramResponse<T>;
 
   if (!res.ok || !json?.ok) {
-    throw new Error(
-      `TG_API_${res.status}:${method}:${JSON.stringify(json)}`
-    );
+    throw new Error(`TG_API_${res.status}:${method}:${JSON.stringify(json)}`);
   }
 
   return json;
 }
 
-async function editMessage(
-  chatId: number,
-  messageId: number,
-  text: string
-) {
+async function editMessage(chatId: number, messageId: number, text: string) {
   return withRetry(() =>
     tgCall("editMessageText", {
       chat_id: chatId,
@@ -135,32 +130,28 @@ async function editMessage(
 }
 
 async function sendMessage(chatId: number, text: string) {
-  return withRetry(() =>
-    tgCall("sendMessage", { chat_id: chatId, text })
-  );
+  return withRetry(() => tgCall("sendMessage", { chat_id: chatId, text }));
 }
 
 /* ================== PUBLIC API ================== */
 
-export async function notifyJobDone(
-  p: NotifyDoneParams
-): Promise<void> {
+export async function notifyJobDone(p: NotifyDoneParams): Promise<void> {
   if (!p.tgUserId || !p.jobId) return;
 
   // 🔔 ТОЛЬКО ПРОГРЕСС, БЕЗ ZIP
   if (p.jobName === "create_cards") {
     if (p.tgMessageId) {
       try {
-        await editMessage(
-          p.tgUserId,
-          p.tgMessageId,
-          "📦 Сборка архива…"
-        );
+        await editMessage(p.tgUserId, p.tgMessageId, "📦 Сборка архива…");
       } catch (e: any) {
         if (!isMessageNotFound(String(e?.message))) throw e;
       }
     }
   }
+
+  // prisma оставлен доступным (singleton), но здесь не используется.
+  // Если захочешь: можно логировать доставку статуса в БД без изменения контрактов.
+  void prisma;
 }
 
 export async function notifyJobFailed(p: NotifyFailParams) {

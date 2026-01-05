@@ -1,22 +1,21 @@
 // apps/worker/src/jobs/exportZip.job.ts
+
 import archiver from "archiver";
 import * as fs from "node:fs";
 import * as fsp from "node:fs/promises";
 import * as path from "node:path";
 import * as os from "node:os";
 
+import BullMQ from "bullmq";
 import { Redis } from "ioredis";
-import { Queue } from "bullmq";
 
 import { getFileStream, putFile, presign } from "@gad/storage";
 import { waitUntilObjectsExist } from "../lib/storageWait.js";
 import { redisConnection } from "../queue/redis.js";
 import { QUEUES, JOBS } from "@gad/queue-names";
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
+import { prisma } from "@gad/db/prisma";
 
-const prisma = new PrismaClient();
-
+type Queue = BullMQ.Queue;
 
 if (!process.env.REDIS_HOST) {
   throw new Error("REDIS_HOST is not set");
@@ -26,14 +25,11 @@ export const redis = new Redis({
   host: process.env.REDIS_HOST,
   port: Number(process.env.REDIS_PORT ?? 6379),
   maxRetriesPerRequest: null,
-  enableReadyCheck: false,
+  enableReadyCheck: false
 });
 
-
-
-
 // ✅ очередь для постановки SEND_ZIP_TG
-const queue = new Queue(QUEUES.MAIN, {
+const queue = new BullMQ.Queue(QUEUES.MAIN, {
   connection: redisConnection()
 });
 
@@ -104,7 +100,10 @@ async function safePutZip(zipPath: string, zipKey: string) {
   }
 }
 
-async function safePresign(zipKey: string, seconds: number): Promise<string | null> {
+async function safePresign(
+  zipKey: string,
+  seconds: number
+): Promise<string | null> {
   try {
     return await presign(zipKey, seconds);
   } catch {
@@ -170,7 +169,10 @@ export async function exportZipJob(data: ExportZipJobPayload) {
     if (putRes.mode === "local") {
       localPath = putRes.path;
     } else {
-      url = await safePresign(data.zipKey, data.presignSeconds ?? 86400);
+      url = await safePresign(
+        data.zipKey,
+        data.presignSeconds ?? 86400
+      );
     }
 
     const result: any = {
@@ -211,9 +213,10 @@ export async function exportZipJob(data: ExportZipJobPayload) {
         }
       );
     } else {
-      console.warn("[EXPORT_ZIP] tgUserId missing, skip SEND_ZIP_TG enqueue", {
-        jobId: data.jobId
-      });
+      console.warn(
+        "[EXPORT_ZIP] tgUserId missing, skip SEND_ZIP_TG enqueue",
+        { jobId: data.jobId }
+      );
     }
 
     return result;

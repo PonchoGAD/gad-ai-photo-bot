@@ -1,15 +1,12 @@
 // apps/worker/src/admin/dlq.ts
 import "dotenv/config";
-import { Queue } from "bullmq";
 
+import BullMQ from "bullmq";
+const { Queue, Worker } = BullMQ;
 
 import { redisConnection } from "../queue/redis.js";
 import { QUEUES } from "@gad/queue-names";
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
-
-const prisma = new PrismaClient();
-
+import { prisma } from "@gad/db/prisma";
 
 const DLQ_NAME = "gad_dlq";
 
@@ -24,14 +21,13 @@ type DlqPayload = {
   attemptsMade?: number;
 };
 
-
-
+// DLQ queue
 const dlq = new Queue<DlqPayload>(DLQ_NAME, {
   connection: redisConnection()
 });
 
 /* ============================
-   HELPERS
+  HELPERS
 ============================ */
 
 function printJob(job: any) {
@@ -54,7 +50,7 @@ function printJob(job: any) {
 }
 
 /* ============================
-   COMMANDS
+  COMMANDS
 ============================ */
 
 async function listDlq() {
@@ -83,13 +79,10 @@ async function retryJob(dlqId: string) {
   const { jobName, jobId, payload } = job.data ?? {};
 
   if (!jobName || !payload || !jobId) {
-    console.error("❌ Invalid DLQ payload (missing jobName / jobId / payload)");
+    console.error("❌ Invalid DLQ payload");
     return;
   }
 
-  console.log("♻️ Requeue job:", jobName, "jobId:", jobId);
-
-  // 🔁 reset Job state (VALID enum values only)
   await prisma.job.update({
     where: { id: jobId },
     data: {
@@ -101,18 +94,13 @@ async function retryJob(dlqId: string) {
     }
   });
 
-  // 🟢 MAIN QUEUE (единая очередь воркера)
   const mainQueue = new Queue(QUEUES.MAIN, {
     connection: redisConnection()
   });
 
-  // ⚠️ ВАЖНО: сохраняем тот же jobId
   await mainQueue.add(
     jobName,
-    {
-      ...payload,
-      jobId
-    },
+    { ...payload, jobId },
     {
       attempts: job.data?.attempts ?? 3,
       removeOnComplete: 200,
@@ -120,10 +108,8 @@ async function retryJob(dlqId: string) {
     }
   );
 
-  // ❌ удаляем из DLQ только после успешного requeue
   await job.remove();
-
-  console.log("✅ Job requeued with same jobId and removed from DLQ");
+  console.log("✅ Job requeued");
 }
 
 async function clearDlq() {
@@ -132,7 +118,7 @@ async function clearDlq() {
 }
 
 /* ============================
-   CLI
+  CLI
 ============================ */
 
 async function main() {
@@ -142,19 +128,13 @@ async function main() {
     case "list":
       await listDlq();
       break;
-
     case "retry":
-      if (!arg) {
-        console.error("❌ Usage: retry <dlqJobId>");
-        break;
-      }
+      if (!arg) return console.error("retry <dlqJobId>");
       await retryJob(arg);
       break;
-
     case "clear":
       await clearDlq();
       break;
-
     default:
       console.log(`
 DLQ ADMIN
