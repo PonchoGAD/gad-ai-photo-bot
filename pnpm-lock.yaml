@@ -45,6 +45,9 @@ importers:
 
   apps/admin:
     dependencies:
+      '@gad/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@prisma/client':
         specifier: ^5.22.0
         version: 5.22.0(prisma@5.22.0)
@@ -97,6 +100,9 @@ importers:
       '@gad/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@gad/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@gad/queue-names':
         specifier: workspace:*
         version: link:../../packages/queue-names
@@ -140,6 +146,9 @@ importers:
       '@gad/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@gad/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@gad/queue-names':
         specifier: workspace:*
         version: link:../../packages/queue-names
@@ -180,6 +189,9 @@ importers:
 
   packages/billing:
     dependencies:
+      '@gad/db':
+        specifier: workspace:*
+        version: link:../db
       '@gad/queue-names':
         specifier: workspace:*
         version: link:../queue-names

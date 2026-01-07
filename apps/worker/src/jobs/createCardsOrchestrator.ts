@@ -8,10 +8,7 @@ import { WB_PRESET } from "@gad/core/presets/wb";
 import { OZON_PRESET } from "@gad/core/presets/ozon";
 import { getJobOptions } from "../lib/retryPolicy.js";
 import { redisConnection } from "../queue/redis.js";
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
-
-const prisma = new PrismaClient();
+import { prisma } from "@gad/db"
 
 const redis = new Redis(redisConnection() as any);
 

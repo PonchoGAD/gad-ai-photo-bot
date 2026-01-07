@@ -40,7 +40,9 @@
     "@prisma/client": "^5.22.0",
     "express": "^5.2.1",
     "stripe": "^20.1.0",
-    "@gad/queue-names": "workspace:*"
+    "@gad/queue-names": "workspace:*",
+    "@gad/db": "workspace:*"
+
   },
 
   "devDependencies": {

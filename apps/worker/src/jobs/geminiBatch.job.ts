@@ -2,10 +2,7 @@
 import type { Queue, Job } from "bullmq";
 import { QueueEvents } from "bullmq";
 import { JOBS } from "@gad/queue-names";
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
-
-const prisma = new PrismaClient();
+import { prisma } from "@gad/db"
 
 
 /**

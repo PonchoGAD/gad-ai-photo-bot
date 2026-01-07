@@ -13,6 +13,7 @@
     "@gad/queue-names": "workspace:*",
     "@gad/storage": "workspace:*",
     "@gad/templates": "workspace:*",
+    "@gad/db": "workspace:*",
     "@prisma/client": "^5.22.0",
     "axios": "^1.13.2",
     "bullmq": "^5.66.3",

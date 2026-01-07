@@ -1,5 +1,5 @@
 // packages/billing/src/ledger.ts
-import { prisma } from "@gad/db/prisma";
+import { prisma } from "@gad/db"
 
 export type LedgerEntryType = "CREDIT" | "DEBIT" | "REFUND";
 export type LedgerMeta = Record<string, any>;

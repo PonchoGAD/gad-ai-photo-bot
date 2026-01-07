@@ -2,7 +2,6 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2022",
-    "composite": true,
     "lib": [
       "ES2022",
       "DOM",
@@ -20,9 +19,6 @@
     "paths": {
       "@/*": [
         "./*"
-      ],
-      "@gad/*": [
-        "../../packages/*/src"
       ]
     },
     "skipLibCheck": true,
@@ -32,7 +28,9 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "noEmit": true,
+    "isolatedModules": true
   },
   "include": [
     "next-env.d.ts",

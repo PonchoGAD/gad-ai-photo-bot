@@ -5,7 +5,7 @@ import type { Context } from "telegraf";
 import { plansKb } from "../ui/keyboards.js";
 
 // ✅ Prisma — ТОЛЬКО singleton
-import { prisma } from "@gad/db/prisma";
+import { prisma } from "@gad/db"
 
 /**
  * Тип PRO-фичи — для аналитики и UX

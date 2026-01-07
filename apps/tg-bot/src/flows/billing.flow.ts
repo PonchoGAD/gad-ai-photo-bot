@@ -1,7 +1,7 @@
 // apps/tg-bot/src/flows/billing.flow.ts
 import type { Context } from "telegraf";
 import { billingKb, plansKb, topupKb } from "../ui/keyboards.js";
-import { prisma } from "@gad/db/prisma";
+import { prisma } from "@gad/db"
 
 /**
  * Главный экран billing

@@ -5,7 +5,7 @@ import type { Context } from "telegraf";
 import { presign } from "@gad/storage";
 
 // ✅ Prisma — ТОЛЬКО singleton
-import { prisma } from "@gad/db/prisma";
+import { prisma } from "@gad/db"
 
 /**
  * MVP listener доставки результата job в TG

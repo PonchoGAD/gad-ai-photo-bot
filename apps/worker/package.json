@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@gad/billing": "workspace:*",
+    "@gad/db": "workspace:*",
     "@gad/core": "workspace:*",
     "@gad/queue-names": "workspace:*",
     "@gad/storage": "workspace:*",

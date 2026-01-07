@@ -3,7 +3,7 @@ import { PLANS, getBaseJobPrice } from "./plans.js";
 import { debit } from "./ledger.js";
 import type { PlanId, Plan } from "./plans.js";
 
-import { prisma } from "@gad/db/prisma";
+import { prisma } from "@gad/db"
 
 /**
  * Расчёт стоимости job

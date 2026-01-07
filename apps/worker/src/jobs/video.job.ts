@@ -5,7 +5,7 @@ import * as os from "node:os";
 
 import { getFilePath, putFile } from "@gad/storage";
 import { runFFmpeg } from "../providers/ffmpeg.js";
-import { prisma } from "@gad/db/prisma";
+import { prisma } from "@gad/db"
 
 export interface VideoJobPayload {
   imageKeys: string[];

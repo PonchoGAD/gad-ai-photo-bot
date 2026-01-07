@@ -1,4 +1,4 @@
-import { prisma } from "@gad/db/prisma";
+import { prisma } from "@gad/db"
 
 
 /* ===============================

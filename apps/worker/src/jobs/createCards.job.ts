@@ -10,7 +10,7 @@ import { WB_PRESET } from "@gad/core/presets/wb";
 import { OZON_PRESET } from "@gad/core/presets/ozon";
 import { getJobOptions } from "../lib/retryPolicy.js";
 import { redisConnection } from "../queue/redis.js";
-import { prisma } from "@gad/db/prisma";
+import { prisma } from "@gad/db"
 
 type Queue = BullMQ.Queue;
 

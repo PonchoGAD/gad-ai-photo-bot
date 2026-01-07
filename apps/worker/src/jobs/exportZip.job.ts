@@ -13,7 +13,7 @@ import { getFileStream, putFile, presign } from "@gad/storage";
 import { waitUntilObjectsExist } from "../lib/storageWait.js";
 import { redisConnection } from "../queue/redis.js";
 import { QUEUES, JOBS } from "@gad/queue-names";
-import { prisma } from "@gad/db/prisma";
+import { prisma } from "@gad/db"
 
 type Queue = BullMQ.Queue;
 

@@ -6,7 +6,7 @@ import * as os from "node:os";
 
 import { putFile } from "@gad/storage";
 import { geminiImageEdit } from "../providers/geminiImage.js";
-import { prisma } from "@gad/db/prisma";
+import { prisma } from "@gad/db"
 
 export type GeminiCardJobPayload = {
   inputPath: string;

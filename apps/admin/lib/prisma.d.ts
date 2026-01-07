@@ -1,1 +1,2 @@
-export declare const prisma: import("@prisma/client").PrismaClient<import("@prisma/client").Prisma.PrismaClientOptions, unknown, import("@prisma/client/runtime/library").InternalArgs>;
+export { prisma } from "@gad/db/prisma";
+export type { Prisma } from "@prisma/client";

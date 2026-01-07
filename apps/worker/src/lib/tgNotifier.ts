@@ -1,5 +1,5 @@
 // apps/worker/src/lib/tgNotifier.ts
-import { prisma } from "@gad/db/prisma";
+import { prisma } from "@gad/db"
 
 /* ================== DB ================== */
 

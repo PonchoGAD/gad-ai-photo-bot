@@ -1,7 +1,7 @@
 // apps/tg-bot/src/lib/waitForJob.ts
 
 // ✅ Prisma — ТОЛЬКО singleton
-import { prisma } from "@gad/db/prisma";
+import { prisma } from "@gad/db"
 
 /**
  * Ожидаем завершение job (DONE / FAILED)

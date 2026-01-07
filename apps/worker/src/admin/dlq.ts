@@ -1,12 +1,12 @@
 // apps/worker/src/admin/dlq.ts
 import "dotenv/config";
 
-import BullMQ from "bullmq";
+import * as BullMQ from "bullmq";
 const { Queue, Worker } = BullMQ;
 
 import { redisConnection } from "../queue/redis.js";
 import { QUEUES } from "@gad/queue-names";
-import { prisma } from "@gad/db/prisma";
+import { prisma } from "@gad/db"
 
 const DLQ_NAME = "gad_dlq";
 

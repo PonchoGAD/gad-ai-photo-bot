@@ -5,7 +5,7 @@ import * as path from "node:path";
 import * as os from "node:os";
 
 import { putFile } from "@gad/storage";
-import { prisma } from "@gad/db/prisma";
+import { prisma } from "@gad/db"
 
 export type PreprocessJobPayload = {
   inputPath: string; // локальный путь (пока так)

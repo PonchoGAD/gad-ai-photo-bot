@@ -12,7 +12,7 @@ import { redisConnection } from "../queue/redis.js";
 import { JOBS, QUEUES } from "@gad/queue-names";
 import { Redis } from "ioredis";
 
-import { prisma } from "@gad/db/prisma";
+import { prisma } from "@gad/db"
 
 if (!process.env.REDIS_HOST) {
   throw new Error("REDIS_HOST is not set");

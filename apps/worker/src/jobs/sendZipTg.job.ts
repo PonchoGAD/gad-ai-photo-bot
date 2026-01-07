@@ -1,7 +1,7 @@
 // apps/worker/src/jobs/sendZipTg.job.ts
 
 import { readZipAsBuffer } from "../lib/readZipAsBuffer.js";
-import { prisma } from "@gad/db/prisma";
+import { prisma } from "@gad/db"
 
 /* ================== ENV ================== */
 

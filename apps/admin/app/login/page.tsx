@@ -1,51 +1,43 @@
-// apps/admin/app/login/page.tsx
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const [telegramId, setTelegramId] = useState("");
-  const [msg, setMsg] = useState<string | null>(null);
+  const [tid, setTid] = useState("");
+  const router = useRouter();
 
-  async function login() {
-    setMsg(null);
-    const res = await fetch("/api/auth", {
+  async function submit() {
+    const res = await fetch("/api/auth/login", {
       method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ telegramId })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId: tid })
     });
 
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setMsg(data?.error ?? "Login failed");
-      return;
+    if (res.ok) {
+      router.push("/");
+    } else {
+      alert("Unauthorized");
     }
-
-    window.location.href = "/";
   }
 
   return (
-    <div className="max-w-md space-y-4">
-      <h1 className="text-2xl font-bold">Admin Login</h1>
-      <p className="text-white/70 text-sm">
-        Введи свой Telegram ID (должен быть в ADMIN_TELEGRAM_IDS).
-      </p>
-
-      <input
-        className="w-full rounded bg-white/5 border border-white/10 px-3 py-2 outline-none"
-        value={telegramId}
-        onChange={(e) => setTelegramId(e.target.value)}
-        placeholder="Telegram ID"
-      />
-
-      <button
-        className="rounded bg-white text-black px-4 py-2 font-semibold"
-        onClick={login}
-      >
-        Login
-      </button>
-
-      {msg && <div className="text-red-400 text-sm">{msg}</div>}
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="space-y-4 w-80">
+        <h1 className="text-xl font-bold">Admin Login</h1>
+        <input
+          className="w-full p-2 bg-black border border-white/20"
+          placeholder="Telegram ID"
+          value={tid}
+          onChange={(e) => setTid(e.target.value)}
+        />
+        <button
+          onClick={submit}
+          className="w-full bg-white text-black py-2 font-semibold"
+        >
+          Login
+        </button>
+      </div>
     </div>
   );
 }

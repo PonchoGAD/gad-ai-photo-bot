@@ -6,7 +6,6 @@
     "baseUrl": ".",
     "paths": {
       "@gad/*": ["packages/*/src"],
-      "@gad/*/*": ["packages/*/src/*"],
       "@gad/db/prisma": ["packages/db/src/prisma.ts"]
     }
   },

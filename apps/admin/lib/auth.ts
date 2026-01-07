@@ -1,5 +1,10 @@
 // apps/admin/lib/auth.ts
+import "server-only";
+
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
+
 
 export const ADMIN_COOKIE = "admin_tid";
 
@@ -26,8 +31,17 @@ export function getAdminTelegramIdFromCookie(): string | null {
 export function requireAdmin() {
   const tid = getAdminTelegramIdFromCookie();
   if (!tid || !isAdmin(tid)) {
-    throw new Error("Unauthorized");
+    // In development allow a bypass to avoid SSR crashes when no cookie is present.
+    // Use `DEV_ADMIN_TID` env or first value from `ADMIN_TELEGRAM_IDS` if available.
+    if (process.env.NODE_ENV !== "production") {
+      const devTid = process.env.DEV_ADMIN_TID ?? ADMINS[0] ?? null;
+      if (devTid) return { telegramId: String(devTid) };
+    }
+
+    // Redirect to login instead of throwing an Error to avoid SSR crash.
+    redirect("/login");
   }
+
   return { telegramId: tid };
 }
 
