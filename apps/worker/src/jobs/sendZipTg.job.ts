@@ -1,7 +1,7 @@
 // apps/worker/src/jobs/sendZipTg.job.ts
 
 import { readZipAsBuffer } from "../lib/readZipAsBuffer.js";
-import { prisma } from "@gad/db"
+import { prisma } from "@gad/db";
 
 /* ================== ENV ================== */
 
@@ -11,7 +11,6 @@ function env(name: string): string {
   return v;
 }
 
-const TG_BOT_TOKEN = env("TG_BOT_TOKEN");
 const TG_API_BASE = process.env.TG_API_BASE ?? "https://api.telegram.org";
 
 /* ================== TYPES ================== */
@@ -32,6 +31,7 @@ type TelegramResponse<T = any> = {
 /* ================== TG CALL ================== */
 
 async function tgSendDocument(params: {
+  token: string;
   chatId: number;
   buffer: Buffer;
   filename: string;
@@ -42,14 +42,12 @@ async function tgSendDocument(params: {
   form.append("chat_id", String(params.chatId));
   if (params.caption) form.append("caption", params.caption);
 
-  // ✅ TS-safe: Buffer → Uint8Array → Blob
   const bytes = new Uint8Array(params.buffer);
   const blob = new Blob([bytes], { type: "application/zip" });
-
   form.append("document", blob, params.filename);
 
   const res = await fetch(
-    `${TG_API_BASE}/bot${TG_BOT_TOKEN}/sendDocument`,
+    `${TG_API_BASE}/bot${params.token}/sendDocument`,
     { method: "POST", body: form as any }
   );
 
@@ -69,6 +67,8 @@ async function tgSendDocument(params: {
 /* ================== JOB ================== */
 
 export async function sendZipTgJob(data: SendZipTgPayload) {
+  const token = env("TG_BOT_TOKEN");
+
   const { jobId, tgUserId } = data;
 
   const job = await prisma.job.findUnique({
@@ -78,7 +78,6 @@ export async function sendZipTgJob(data: SendZipTgPayload) {
   if (!job) throw new Error("JOB_NOT_FOUND");
   if (!job.outputJson) throw new Error("ZIP_NOT_READY");
 
-  // 🔒 идемпотентность
   if (job.tgDeliveredAt) {
     console.log("[TG] skip delivery (already sent)", jobId);
     return;
@@ -90,18 +89,16 @@ export async function sendZipTgJob(data: SendZipTgPayload) {
 
   if (!zipKey) throw new Error("ZIP_KEY_MISSING");
 
-  // 📦 читаем ZIP (MinIO / S3 / local)
   const zipBuffer = await readZipAsBuffer(zipKey);
 
-  // 📤 отправляем ZIP
   const sent = await tgSendDocument({
+    token,
     chatId: tgUserId,
     buffer: zipBuffer,
     filename: "cards.zip",
     caption: "✅ Архив с карточками готов",
   });
 
-  // ✅ фиксируем доставку
   await prisma.job.update({
     where: { id: jobId },
     data: {
