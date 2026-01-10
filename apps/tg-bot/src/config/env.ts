@@ -14,7 +14,7 @@ function requireEnv(name: string): string {
 }
 
 export const ENV = {
-  token: requireEnv("TELEGRAM_BOT_TOKEN"),
+  token: requireEnv("TG_BOT_TOKEN"),
   redisHost: process.env.REDIS_HOST ?? "localhost",
   redisPort: Number(process.env.REDIS_PORT ?? 6379)
 };
