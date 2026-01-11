@@ -1,10 +1,5 @@
 // apps/tg-bot/src/config/env.ts
-import dotenv from "dotenv";
-import path from "node:path";
 
-dotenv.config({
-  path: path.resolve(process.cwd(), "../../.env")
-});
 
 
 function requireEnv(name: string): string {
