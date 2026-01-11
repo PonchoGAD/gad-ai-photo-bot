@@ -53,9 +53,9 @@ services:
     build:
       context: .
       target: tg-bot
+      env_file: .env
     environment:
       NODE_ENV: production
-      TG_BOT_TOKEN: ${TG_BOT_TOKEN}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       DATABASE_URL: ${DATABASE_URL}
