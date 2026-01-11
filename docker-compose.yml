@@ -49,20 +49,26 @@ services:
       "
     restart: "no"
 
-  tg-bot:
-    build:
-      context: .
-      target: tg-bot
-      env_file: .env
-    environment:
-      NODE_ENV: production
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      DATABASE_URL: ${DATABASE_URL}
-    depends_on:
-      - redis
-      - postgres
-    restart: unless-stopped
+tg-bot:
+  build:
+    context: .
+    target: tg-bot
+
+  env_file:
+    - .env
+
+  environment:
+    NODE_ENV: production
+    REDIS_HOST: redis
+    REDIS_PORT: 6379
+    DATABASE_URL: ${DATABASE_URL}
+
+  depends_on:
+    - redis
+    - postgres
+
+  restart: unless-stopped
+
 
   worker:
     build:
